@@ -9,7 +9,6 @@ package riscv_types_pkg;
 		I_TYPE
 
 
-
 	} inst_format_e;
 
 	typedef enum logic[6:0] {
@@ -34,6 +33,3 @@ package riscv_types_pkg;
 
 
 endpackage
-
-
-
