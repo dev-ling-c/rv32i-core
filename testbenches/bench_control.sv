@@ -21,7 +21,7 @@ module bench_control;
     );
 
     initial begin
-        $dumpfile("bench_control.vcd");
+        $dumpfile("waves/bench_control.vcd");
         $dumpvars(0, bench_control);
     end
     int pass_count = 0;
