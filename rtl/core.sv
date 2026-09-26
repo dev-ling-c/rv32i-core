@@ -10,12 +10,14 @@ module core
 
 	alu_op_e alu_op;
 	inst_format_e inst_format;
+	alu_a_sel_e alu_a_sel;
 	logic alu_b_imm;
 	logic reg_write_en;
 
 	logic [XLEN-1:0] rs1_data;
 	logic [XLEN-1:0] rs2_data;
 	logic [XLEN-1:0] imm;
+	logic [XLEN-1:0] alu_a;
 	logic [XLEN-1:0] alu_b;
 	logic [XLEN-1:0] alu_result;
 	/* verilator lint_off UNUSEDSIGNAL */
@@ -34,6 +36,7 @@ module core
 		.inst_i(inst_i),
 		.alu_op_o(alu_op),
 		.inst_format_o(inst_format),
+		.alu_a_sel_o(alu_a_sel),
 		.alu_b_imm_o(alu_b_imm),
 		.reg_write_en_o(reg_write_en),
 		.illegal_inst_o(illegal_inst_o)
@@ -58,6 +61,16 @@ module core
 	);
 
 	always_comb begin
+		if (alu_a_sel == ALU_A_ZERO) begin
+			alu_a = '0;
+		end else if (alu_a_sel == ALU_A_PC) begin
+			alu_a = pc_o;
+		end else begin
+			alu_a = rs1_data;
+		end
+	end
+
+	always_comb begin
 		if (alu_b_imm == 1'b1) begin
 			alu_b = imm;
 		end else begin
@@ -67,7 +80,7 @@ module core
 
 	alu alu (
 		.alu_op_i(alu_op),
-		.a_i(rs1_data),
+		.a_i(alu_a),
 		.b_i(alu_b),
 		.result_o(alu_result),
 		.zero_o(alu_zero)

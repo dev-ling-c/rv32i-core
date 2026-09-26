@@ -5,6 +5,7 @@ module bench_control;
     logic [XLEN-1:0] inst_i;
     alu_op_e alu_op_o;
     inst_format_e inst_format_o;
+    alu_a_sel_e alu_a_sel_o;
     logic alu_b_imm_o;
     logic reg_write_en_o;
     logic illegal_inst_o;
@@ -15,6 +16,7 @@ module bench_control;
         .inst_i(inst_i),
         .alu_op_o(alu_op_o),
         .inst_format_o(inst_format_o),
+        .alu_a_sel_o(alu_a_sel_o),
         .alu_b_imm_o(alu_b_imm_o),
         .reg_write_en_o(reg_write_en_o),
         .illegal_inst_o(illegal_inst_o)

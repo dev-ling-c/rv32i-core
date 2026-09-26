@@ -4,6 +4,7 @@ module control
 	input logic [XLEN-1:0] inst_i,
 	output alu_op_e alu_op_o,
 	output inst_format_e inst_format_o,
+	output alu_a_sel_e alu_a_sel_o,
 	output logic alu_b_imm_o,
 	output logic reg_write_en_o,
 	output logic illegal_inst_o
@@ -20,6 +21,7 @@ module control
 	always_comb begin
 		alu_op_o = ALU_ADD;
 		inst_format_o = R_TYPE;
+		alu_a_sel_o = ALU_A_RS1;
 		alu_b_imm_o = 1'b0;
 		reg_write_en_o = 1'b0;
 		illegal_inst_o = 1'b1;
@@ -27,6 +29,7 @@ module control
 		case (opcode)
 			OPCODE_OP: begin
 				inst_format_o = R_TYPE;
+				alu_a_sel_o = ALU_A_RS1;
 				alu_b_imm_o = 1'b0;
 				case (funct3)
 					3'b000: begin
@@ -99,6 +102,7 @@ module control
 			end
 			OPCODE_IMM: begin
 				inst_format_o = I_TYPE;
+				alu_a_sel_o = ALU_A_RS1;
 				alu_b_imm_o = 1'b1;
 				case (funct3)
 					3'b000: begin
@@ -152,6 +156,24 @@ module control
 					default: begin
 					end
 				endcase
+			end
+			OPCODE_LUI: begin
+				// rd = imm  ->  0 + imm
+				alu_op_o = ALU_ADD;
+				inst_format_o = U_TYPE;
+				alu_a_sel_o = ALU_A_ZERO;
+				alu_b_imm_o = 1'b1;
+				reg_write_en_o = 1'b1;
+				illegal_inst_o = 1'b0;
+			end
+			OPCODE_AUIPC: begin
+				// rd = pc + imm
+				alu_op_o = ALU_ADD;
+				inst_format_o = U_TYPE;
+				alu_a_sel_o = ALU_A_PC;
+				alu_b_imm_o = 1'b1;
+				reg_write_en_o = 1'b1;
+				illegal_inst_o = 1'b0;
 			end
 			default: begin
 			end

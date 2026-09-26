@@ -9,10 +9,10 @@ module bench_core;
 
     logic [XLEN-1:0] imem [0:255];
 
-    logic [XLEN-1:0] test_inst [0:7];
-    string test_name [0:7];
-    logic [4:0] check_reg [0:7];
-    logic [XLEN-1:0] check_val [0:7];
+    logic [XLEN-1:0] test_inst [0:9];
+    string test_name [0:9];
+    logic [4:0] check_reg [0:9];
+    logic [XLEN-1:0] check_val [0:9];
 
     core core(
         .clk(clk),
@@ -87,10 +87,22 @@ module bench_core;
         check_reg[7] = 5'd4;
         check_val[7] = 32'd8;
 
+        // lui x7, 0x12345  -> x7 = 0x12345000
+        test_inst[8] = 32'h123453B7;
+        test_name[8] = "lui x7, 0x12345";
+        check_reg[8] = 5'd7;
+        check_val[8] = 32'h12345000;
+
+        // auipc x8, 1  at pc=0x24  -> x8 = 0x24 + 0x1000 = 0x1024
+        test_inst[9] = 32'h00001417;
+        test_name[9] = "auipc x8, 1";
+        check_reg[9] = 5'd8;
+        check_val[9] = 32'h00001024;
+
         for (i = 0; i < 256; i++) begin
             imem[i] = '0;
         end
-        for (i = 0; i < 8; i++) begin
+        for (i = 0; i < 10; i++) begin
             imem[i] = test_inst[i];
         end
 
@@ -98,7 +110,7 @@ module bench_core;
         repeat (2) @(posedge clk);
         rst_n = 1'b1;
 
-        for (i = 0; i < 8; i++) begin
+        for (i = 0; i < 10; i++) begin
             $display("%s", test_name[i]);
             @(posedge clk);
             debug(check_val[i], core.register.registers[check_reg[i]], $sformatf("x%0d", check_reg[i]));

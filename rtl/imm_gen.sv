@@ -23,6 +23,10 @@ module imm_gen
 			I_TYPE: begin
 				imm_o = {extension, inst_i[31:20]};
 			end
+			U_TYPE: begin
+				// upper 20 bits of the instruction, low 12 bits zero
+				imm_o = {inst_i[31:12], 12'b0};
+			end
 		endcase
 
 	end

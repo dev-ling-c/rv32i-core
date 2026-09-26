@@ -6,15 +6,23 @@ package riscv_types_pkg;
 
 	typedef enum logic[1:0] {
 		R_TYPE,
-		I_TYPE
-
-
+		I_TYPE,
+		U_TYPE
 	} inst_format_e;
 
 	typedef enum logic[6:0] {
-		OPCODE_OP = 7'b0110011,
-		OPCODE_IMM = 7'b0010011
+		OPCODE_OP    = 7'b0110011,
+		OPCODE_IMM   = 7'b0010011,
+		OPCODE_LUI   = 7'b0110111,
+		OPCODE_AUIPC = 7'b0010111
 	} opcode_e;
+
+	// what goes into ALU input A
+	typedef enum logic[1:0] {
+		ALU_A_RS1  = 2'b00,
+		ALU_A_ZERO = 2'b01,
+		ALU_A_PC   = 2'b10
+	} alu_a_sel_e;
 
 	typedef enum logic[3:0] {
 		ALU_ADD = 4'b0000,      //Addition
