@@ -4,17 +4,22 @@ package riscv_types_pkg;
 	localparam int unsigned REG_ADDR_WIDTH = 5;
 	/* verilator lint_on UNUSEDPARAM */
 
-	typedef enum logic[1:0] {
+	typedef enum logic[2:0] {
 		R_TYPE,
 		I_TYPE,
-		U_TYPE
+		U_TYPE,
+		S_TYPE,
+		B_TYPE
 	} inst_format_e;
 
 	typedef enum logic[6:0] {
 		OPCODE_OP    = 7'b0110011,
 		OPCODE_IMM   = 7'b0010011,
 		OPCODE_LUI   = 7'b0110111,
-		OPCODE_AUIPC = 7'b0010111
+		OPCODE_AUIPC = 7'b0010111,
+		OPCODE_LOAD  = 7'b0000011,
+		OPCODE_STORE = 7'b0100011,
+		OPCODE_BRANCH = 7'b1100011
 	} opcode_e;
 
 	// what goes into ALU input A
@@ -23,6 +28,12 @@ package riscv_types_pkg;
 		ALU_A_ZERO = 2'b01,
 		ALU_A_PC   = 2'b10
 	} alu_a_sel_e;
+
+	// what gets written back to the register file
+	typedef enum logic[0:0] {
+		WB_ALU = 1'b0,
+		WB_MEM = 1'b1
+	} wb_sel_e;
 
 	typedef enum logic[3:0] {
 		ALU_ADD = 4'b0000,      //Addition

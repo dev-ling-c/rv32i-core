@@ -6,6 +6,10 @@ module control
 	output inst_format_e inst_format_o,
 	output alu_a_sel_e alu_a_sel_o,
 	output logic alu_b_imm_o,
+	output logic mem_read_o,
+	output logic mem_write_o,
+	output wb_sel_e wb_sel_o,
+	output logic branch_o,
 	output logic reg_write_en_o,
 	output logic illegal_inst_o
 );
@@ -23,6 +27,10 @@ module control
 		inst_format_o = R_TYPE;
 		alu_a_sel_o = ALU_A_RS1;
 		alu_b_imm_o = 1'b0;
+		mem_read_o = 1'b0;
+		mem_write_o = 1'b0;
+		wb_sel_o = WB_ALU;
+		branch_o = 1'b0;
 		reg_write_en_o = 1'b0;
 		illegal_inst_o = 1'b1;
 
@@ -158,7 +166,6 @@ module control
 				endcase
 			end
 			OPCODE_LUI: begin
-				// rd = imm  ->  0 + imm
 				alu_op_o = ALU_ADD;
 				inst_format_o = U_TYPE;
 				alu_a_sel_o = ALU_A_ZERO;
@@ -167,13 +174,71 @@ module control
 				illegal_inst_o = 1'b0;
 			end
 			OPCODE_AUIPC: begin
-				// rd = pc + imm
 				alu_op_o = ALU_ADD;
 				inst_format_o = U_TYPE;
 				alu_a_sel_o = ALU_A_PC;
 				alu_b_imm_o = 1'b1;
 				reg_write_en_o = 1'b1;
 				illegal_inst_o = 1'b0;
+			end
+			OPCODE_LOAD: begin
+				// addr = rs1 + imm, then read memory into rd
+				alu_op_o = ALU_ADD;
+				inst_format_o = I_TYPE;
+				alu_a_sel_o = ALU_A_RS1;
+				alu_b_imm_o = 1'b1;
+				mem_read_o = 1'b1;
+				wb_sel_o = WB_MEM;
+				case (funct3)
+					3'b000, // lb
+					3'b001, // lh
+					3'b010, // lw
+					3'b100, // lbu
+					3'b101: begin // lhu
+						reg_write_en_o = 1'b1;
+						illegal_inst_o = 1'b0;
+					end
+					default: begin
+					end
+				endcase
+			end
+			OPCODE_BRANCH: begin
+				// compare rs1 and rs2, no register write
+				alu_op_o = ALU_SUB;
+				inst_format_o = B_TYPE;
+				alu_a_sel_o = ALU_A_RS1;
+				alu_b_imm_o = 1'b0;
+				branch_o = 1'b1;
+				case (funct3)
+					3'b000, // beq
+					3'b001, // bne
+					3'b100, // blt
+					3'b101, // bge
+					3'b110, // bltu
+					3'b111: begin // bgeu
+						illegal_inst_o = 1'b0;
+					end
+					default: begin
+						branch_o = 1'b0;
+					end
+				endcase
+			end
+			OPCODE_STORE: begin
+				// addr = rs1 + imm, write rs2 to memory
+				alu_op_o = ALU_ADD;
+				inst_format_o = S_TYPE;
+				alu_a_sel_o = ALU_A_RS1;
+				alu_b_imm_o = 1'b1;
+				mem_write_o = 1'b1;
+				case (funct3)
+					3'b000, // sb
+					3'b001, // sh
+					3'b010: begin // sw
+						illegal_inst_o = 1'b0;
+					end
+					default: begin
+					end
+				endcase
 			end
 			default: begin
 			end

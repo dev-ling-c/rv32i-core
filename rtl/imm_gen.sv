@@ -27,6 +27,14 @@ module imm_gen
 				// upper 20 bits of the instruction, low 12 bits zero
 				imm_o = {inst_i[31:12], 12'b0};
 			end
+			S_TYPE: begin
+				// imm = {inst[31:25], inst[11:7]}, sign-extended
+				imm_o = {extension, inst_i[31:25], inst_i[11:7]};
+			end
+			B_TYPE: begin
+				// 13-bit offset: imm[12], imm[11], imm[10:5], imm[4:1], 0
+				imm_o = {extension[18:0], inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+			end
 		endcase
 
 	end

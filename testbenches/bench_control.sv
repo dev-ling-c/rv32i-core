@@ -7,6 +7,10 @@ module bench_control;
     inst_format_e inst_format_o;
     alu_a_sel_e alu_a_sel_o;
     logic alu_b_imm_o;
+    logic mem_read_o;
+    logic mem_write_o;
+    wb_sel_e wb_sel_o;
+    logic branch_o;
     logic reg_write_en_o;
     logic illegal_inst_o;
 
@@ -18,6 +22,10 @@ module bench_control;
         .inst_format_o(inst_format_o),
         .alu_a_sel_o(alu_a_sel_o),
         .alu_b_imm_o(alu_b_imm_o),
+        .mem_read_o(mem_read_o),
+        .mem_write_o(mem_write_o),
+        .wb_sel_o(wb_sel_o),
+        .branch_o(branch_o),
         .reg_write_en_o(reg_write_en_o),
         .illegal_inst_o(illegal_inst_o)
     );
