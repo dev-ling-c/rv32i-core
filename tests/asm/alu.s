@@ -1,0 +1,43 @@
+    addi x1, x0, 10
+    andi x2, x1, 3
+    ori  x3, x1, 5
+    xori x4, x1, 1
+    slli x5, x1, 2
+    slti x6, x2, 10
+    add  x7, x1, x2
+    sub  x8, x1, x2
+    addi x9, x0, -16
+    srai x10, x9, 2
+    srli x11, x9, 28
+    sltu x12, x0, x1
+    xor  x13, x1, x2
+    or   x14, x1, x2
+    and  x15, x1, x2
+    slt  x16, x9, x0
+    sll  x17, x2, x2
+    srl  x18, x9, x2
+    sra  x19, x9, x2
+    lui  x20, 0x12345
+    auipc x21, 1            # pc is 0x50 here
+
+# expect x1 10
+# expect x2 2
+# expect x3 15
+# expect x4 11
+# expect x5 40
+# expect x6 1
+# expect x7 12
+# expect x8 8
+# expect x9 -16
+# expect x10 -4
+# expect x11 0xf
+# expect x12 1
+# expect x13 8
+# expect x14 10
+# expect x15 2
+# expect x16 1
+# expect x17 8
+# expect x18 0x3ffffffc
+# expect x19 -4
+# expect x20 0x12345000
+# expect x21 0x1050
