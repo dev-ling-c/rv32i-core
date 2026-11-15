@@ -10,6 +10,8 @@ module control
 	output logic mem_write_o,
 	output wb_sel_e wb_sel_o,
 	output logic branch_o,
+	output logic jump_o,
+	output logic jump_reg_o,
 	output logic reg_write_en_o,
 	output logic illegal_inst_o
 );
@@ -31,6 +33,8 @@ module control
 		mem_write_o = 1'b0;
 		wb_sel_o = WB_ALU;
 		branch_o = 1'b0;
+		jump_o = 1'b0;
+		jump_reg_o = 1'b0;
 		reg_write_en_o = 1'b0;
 		illegal_inst_o = 1'b1;
 
@@ -239,6 +243,30 @@ module control
 					default: begin
 					end
 				endcase
+			end
+			OPCODE_JAL: begin
+				// next_pc = pc + imm, rd = pc + 4
+				alu_op_o = ALU_ADD;
+				inst_format_o = J_TYPE;
+				alu_a_sel_o = ALU_A_PC;
+				alu_b_imm_o = 1'b1;
+				wb_sel_o = WB_PC4;
+				jump_o = 1'b1;
+				reg_write_en_o = 1'b1;
+				illegal_inst_o = 1'b0;
+			end
+			OPCODE_JALR: begin
+				// next_pc = (rs1 + imm) with bit0 cleared, rd = pc + 4
+				alu_op_o = ALU_ADD;
+				inst_format_o = I_TYPE;
+				alu_a_sel_o = ALU_A_RS1;
+				alu_b_imm_o = 1'b1;
+				wb_sel_o = WB_PC4;
+				if (funct3 == 3'b000) begin
+					jump_reg_o = 1'b1;
+					reg_write_en_o = 1'b1;
+					illegal_inst_o = 1'b0;
+				end
 			end
 			default: begin
 			end

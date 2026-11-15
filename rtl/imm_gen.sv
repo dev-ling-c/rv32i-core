@@ -35,6 +35,10 @@ module imm_gen
 				// 13-bit offset: imm[12], imm[11], imm[10:5], imm[4:1], 0
 				imm_o = {extension[18:0], inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
 			end
+			J_TYPE: begin
+				// 21-bit offset: imm[20], imm[10:1], imm[11], imm[19:12], 0
+				imm_o = {extension[10:0], inst_i[31], inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};
+			end
 		endcase
 
 	end

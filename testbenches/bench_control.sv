@@ -11,6 +11,8 @@ module bench_control;
     logic mem_write_o;
     wb_sel_e wb_sel_o;
     logic branch_o;
+    logic jump_o;
+    logic jump_reg_o;
     logic reg_write_en_o;
     logic illegal_inst_o;
 
@@ -26,6 +28,8 @@ module bench_control;
         .mem_write_o(mem_write_o),
         .wb_sel_o(wb_sel_o),
         .branch_o(branch_o),
+        .jump_o(jump_o),
+        .jump_reg_o(jump_reg_o),
         .reg_write_en_o(reg_write_en_o),
         .illegal_inst_o(illegal_inst_o)
     );

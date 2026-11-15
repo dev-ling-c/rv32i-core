@@ -17,6 +17,8 @@ module core
 	wb_sel_e wb_sel;
 	logic branch;
 	logic branch_taken;
+	logic jump;
+	logic jump_reg;
 	logic reg_write_en;
 
 	logic [XLEN-1:0] rs1_data;
@@ -50,6 +52,8 @@ module core
 		.mem_write_o(mem_write),
 		.wb_sel_o(wb_sel),
 		.branch_o(branch),
+		.jump_o(jump),
+		.jump_reg_o(jump_reg),
 		.reg_write_en_o(reg_write_en),
 		.illegal_inst_o(illegal_inst_o)
 	);
@@ -112,6 +116,8 @@ module core
 	always_comb begin
 		if (wb_sel == WB_MEM) begin
 			rd_data = mem_rdata;
+		end else if (wb_sel == WB_PC4) begin
+			rd_data = pc_o + 32'd4;
 		end else begin
 			rd_data = alu_result;
 		end
@@ -147,8 +153,10 @@ module core
 	end
 
 	always_comb begin
-		if ((branch == 1'b1) && (branch_taken == 1'b1)) begin
+		if (((branch == 1'b1) && (branch_taken == 1'b1)) || (jump == 1'b1)) begin
 			next_pc = pc_o + imm;
+		end else if (jump_reg == 1'b1) begin
+			next_pc = {alu_result[31:1], 1'b0};
 		end else begin
 			next_pc = pc_o + 32'd4;
 		end
