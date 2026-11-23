@@ -1,49 +1,9 @@
-# rv32i-core
+# Single-cycle RV32I core
 
-A simple RISC-V cpu. Not pipelined, one instruction at a time.
+The core executes integer arithmetic, loads and stores, conditional branches, JAL, JALR, LUI and AUIPC. The decoder accepts FENCE and FENCE.I as no-ops. Instruction memory is external. Data memory holds 1 KiB. The core signals illegal instructions and misaligned instruction targets and holds the PC on either fault.
 
-It can do ALU R-type and I-type instructions currently (`add`, `addi`, `sub`, ...). No memory or branches yet.
+## Simulation
 
+From the project root in WSL, run `bash tests/run.sh`. This builds and runs four SystemVerilog benches, then assembles and runs every program in `tests/asm`. To run just the call-and-return example, use `bash tests/run.sh jump`. The tools are Verilator, Clang with a RISC-V target, and LLVM objcopy and objdump.
 
-## How to run
-
-Requires Verilator. 
-
-```bash
-mkdir -p waves build
-```
-
-Test the decoder:
-
-```bash
-verilator --binary --timing --trace -j 0 -Mdir build -Irtl --top-module bench_control \
-  rtl/riscv_types_pkg.sv rtl/control.sv testbenches/bench_control.sv
-
-./build/Vbench_control
-```
-
-Test the whole core:
-
-```bash
-verilator --binary --timing --trace -j 0 -Mdir build -Irtl --top-module bench_core \
-  rtl/riscv_types_pkg.sv rtl/alu.sv rtl/register.sv rtl/imm_gen.sv \
-  rtl/control.sv rtl/pc.sv rtl/core.sv testbenches/bench_core.sv
-
-./build/Vbench_core
-```
-
-If it worked it prints `ALL PASS`.
-Waveforms are all dumped into waves/*
-Working waveforms are added to docs/waves/* for documentation purposes
-
-To look at waves:
-
-```bash
-surfer waves/bench_core.vcd
-
-#or
-gtkwave waves/bench_core.vcd
-```
-
-Clock is under `bench_core` in the tree. Control doesnt have a clock.
-
+Open `waves/test_jump.vcd` in GTKWave or Surfer. Watch `pc_o`, `inst_i`, `core.next_pc` and `core.rd_data` across rising clock edges. The assembly comments beginning with `# expect` describe final register checks.

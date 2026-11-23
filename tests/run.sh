@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
@@ -10,15 +10,22 @@ OBJDUMP=$(command -v llvm-objdump || command -v llvm-objdump-18)
 mkdir -p build/tests waves
 
 if [ $# -eq 0 ]; then
-    tests=$(basename -s .s tests/asm/*.s)
+    tests=()
+    for source in tests/asm/*.s; do tests+=("$(basename "$source" .s)"); done
+    for top in bench_control bench_core bench_branch bench_mem; do
+        echo "== $top"
+        verilator --binary --assert --timing --trace -j 4 -Mdir build/tests/"$top" -Irtl --top-module "$top" \
+            $RTL testbenches/"$top".sv > build/tests/"$top".log 2>&1 || { cat build/tests/"$top".log; exit 1; }
+        ./build/tests/"$top"/V"$top"
+    done
 else
-    tests="$@"
+    tests=("$@")
 fi
 
 verilator --binary --timing --trace -j 0 -Mdir build/tests/obj -Irtl --top-module bench_program \
     $RTL tests/bench_program.sv > build/tests/verilator.log 2>&1 || { cat build/tests/verilator.log; exit 1; }
 
-for test in $tests; do
+for test in "${tests[@]}"; do
     echo "== $test"
     clang --target=riscv32 -march=rv32i -mno-relax -c tests/asm/$test.s -o build/tests/$test.o
     $OBJCOPY -O binary -j .text build/tests/$test.o build/tests/$test.bin

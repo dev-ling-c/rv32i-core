@@ -6,6 +6,7 @@ module bench_program;
     logic [XLEN-1:0] inst_i;
     logic [XLEN-1:0] pc_o;
     logic illegal_inst_o;
+    logic instr_addr_misaligned_o;
 
     logic [XLEN-1:0] imem [0:255];
 
@@ -19,7 +20,8 @@ module bench_program;
         .rst_n(rst_n),
         .inst_i(inst_i),
         .pc_o(pc_o),
-        .illegal_inst_o(illegal_inst_o)
+        .illegal_inst_o(illegal_inst_o),
+        .instr_addr_misaligned_o(instr_addr_misaligned_o)
     );
 
     assign inst_i = imem[pc_o[9:2]];
@@ -35,6 +37,9 @@ module bench_program;
         $display("PASS %s expected=%08x actual=%08x", name, expected, actual);
         pass_count++;
     endfunction
+
+    always @(posedge clk)
+        if (rst_n && instr_addr_misaligned_o) $fatal(1, "Unexpected misaligned target at pc=%08x", pc_o);
 
     initial clk = 1'b0;
     always #10 clk = ~clk;

@@ -6,6 +6,7 @@ module bench_branch;
     logic [XLEN-1:0] inst_i;
     logic [XLEN-1:0] pc_o;
     logic illegal_inst_o;
+    logic instr_addr_misaligned_o;
 
     logic [XLEN-1:0] imem [0:255];
 
@@ -17,10 +18,13 @@ module bench_branch;
         .rst_n(rst_n),
         .inst_i(inst_i),
         .pc_o(pc_o),
-        .illegal_inst_o(illegal_inst_o)
+        .illegal_inst_o(illegal_inst_o),
+        .instr_addr_misaligned_o(instr_addr_misaligned_o)
     );
 
-    assign inst_i = imem[pc_o[9:2]];
+    bit probe_active;
+    logic [31:0] probe_instruction;
+    assign inst_i = probe_active ? probe_instruction : imem[pc_o[9:2]];
 
     initial begin
         $dumpfile("waves/bench_branch.vcd");
@@ -38,6 +42,23 @@ module bench_branch;
         $display("PASS %s expected=%08x actual=%08x", name, expected, actual);
         pass_count++;
     endfunction
+
+    // Inject each instruction at the current PC and sample after writeback.
+    task automatic check_target(input logic [31:0] instruction,
+                                input logic expect_fault,
+                                input logic [31:0] expected_pc,
+                                input logic [31:0] expected_x1);
+        @(negedge clk);
+        probe_instruction = instruction;
+        probe_active = 1;
+        #1;
+        if (illegal_inst_o || instr_addr_misaligned_o !== expect_fault)
+            $fatal(1, "Wrong fault for instruction %08x at pc=%08x", instruction, pc_o);
+        @(posedge clk);
+        #1;
+        debug(expected_pc, pc_o, "pc after control transfer");
+        debug(expected_x1, core.register.registers[1], "x1 after control transfer");
+    endtask
 
     initial clk = 1'b0;
     always #10 clk = ~clk;
@@ -107,6 +128,13 @@ module bench_branch;
         debug(32'd0, core.register.registers[8], "x8");
         debug(32'd0, core.register.registers[9], "x9");
         debug(32'd8, core.register.registers[10], "x10");
+
+        // The program above stops at PC 56 with x1 = 1.
+        check_target(32'h002000ef, 1, 56, 1);  // jal x1, +2
+        check_target(32'h003000e7, 1, 56, 1);  // jalr x1, 3(x0) -> 2
+        check_target(32'h00000163, 1, 56, 1);  // beq x0, x0, +2 (taken)
+        check_target(32'h00001163, 0, 60, 1);  // bne x0, x0, +2 (fall through)
+        check_target(32'h009000e7, 0, 8, 64);  // jalr x1, 9(x0) -> 8
 
         if (fail_count > 0) begin
             $display("FAIL %d tests", fail_count);

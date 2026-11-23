@@ -268,6 +268,17 @@ module control
 					illegal_inst_o = 1'b0;
 				end
 			end
+			OPCODE_MISC_MEM: begin
+				// fence / fence.i: nop on a single-cycle core
+				case (funct3)
+					3'b000, // fence
+					3'b001: begin // fence.i
+						illegal_inst_o = 1'b0;
+					end
+					default: begin
+					end
+				endcase
+			end
 			default: begin
 			end
 		endcase

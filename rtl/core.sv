@@ -5,7 +5,8 @@ module core
 	input logic rst_n,
 	input logic [XLEN-1:0] inst_i,
 	output logic [XLEN-1:0] pc_o,
-	output logic illegal_inst_o
+	output logic illegal_inst_o,
+	output logic instr_addr_misaligned_o
 );
 
 	alu_op_e alu_op;
@@ -37,7 +38,7 @@ module core
 	pc pc (
 		.clk(clk),
 		.rst_n(rst_n),
-		.stall_i(illegal_inst_o),
+		.stall_i(illegal_inst_o || instr_addr_misaligned_o),
 		.next_pc_i(next_pc),
 		.pc_o(pc_o)
 	);
@@ -65,7 +66,7 @@ module core
 		.rs2_addr_i(inst_i[24:20]),
 		.rd_addr_i(inst_i[11:7]),
 		.rd_data_i(rd_data),
-		.reg_write_en_i(reg_write_en),
+		.reg_write_en_i(reg_write_en && !instr_addr_misaligned_o),
 		.rs1_data_o(rs1_data),
 		.rs2_data_o(rs2_data)
 	);
@@ -161,5 +162,8 @@ module core
 			next_pc = pc_o + 32'd4;
 		end
 	end
+
+	// The selected target already accounts for branch direction and JALR bit 0.
+	assign instr_addr_misaligned_o = next_pc[1:0] != 2'b00;
 
 endmodule

@@ -22,7 +22,8 @@ package riscv_types_pkg;
 		OPCODE_STORE  = 7'b0100011,
 		OPCODE_BRANCH = 7'b1100011,
 		OPCODE_JAL    = 7'b1101111,
-		OPCODE_JALR   = 7'b1100111
+		OPCODE_JALR   = 7'b1100111,
+		OPCODE_MISC_MEM = 7'b0001111
 	} opcode_e;
 
 	// what goes into ALU input A
