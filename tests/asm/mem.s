@@ -1,4 +1,5 @@
-    addi x1, x0, 100        # base address
+    lui  x1, 0x20           # separate data page for Spike (core RAM uses low 10 bits)
+    addi x1, x1, 100        # base address
     addi x2, x0, 42
     sw   x2, 0(x1)
     lw   x3, 0(x1)
