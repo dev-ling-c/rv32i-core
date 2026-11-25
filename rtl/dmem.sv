@@ -83,10 +83,10 @@ module dmem
 			case (funct3_i)
 				3'b000: begin // sb
 					case (byte_offset)
-						2'b00: mem[addr_i[9:2]] <= {word[31:8], wdata_i[7:0]};
-						2'b01: mem[addr_i[9:2]] <= {word[31:16], wdata_i[7:0], word[7:0]};
-						2'b10: mem[addr_i[9:2]] <= {word[31:24], wdata_i[7:0], word[15:0]};
-						2'b11: mem[addr_i[9:2]] <= {wdata_i[7:0], word[23:0]};
+						2'b00: mem[addr_i[9:2]][7:0]   <= wdata_i[7:0];
+						2'b01: mem[addr_i[9:2]][15:8]  <= wdata_i[7:0];
+						2'b10: mem[addr_i[9:2]][23:16] <= wdata_i[7:0];
+						2'b11: mem[addr_i[9:2]][31:24] <= wdata_i[7:0];
 					endcase
 				end
 				3'b001: begin // sh

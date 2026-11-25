@@ -12,6 +12,7 @@ mkdir -p build/tests waves
 if [ $# -eq 0 ]; then
     tests=()
     for source in tests/asm/*.s; do tests+=("$(basename "$source" .s)"); done
+    tests+=(led)
     for top in bench_control bench_core bench_branch bench_mem; do
         echo "== $top"
         verilator --binary --assert --timing --trace -j 4 -Mdir build/tests/"$top" -Irtl --top-module "$top" \
@@ -27,14 +28,28 @@ verilator --binary --timing --trace -j 0 -Mdir build/tests/obj -Irtl --top-modul
 
 for test in "${tests[@]}"; do
     echo "== $test"
-    clang --target=riscv32 -march=rv32i -mno-relax -c tests/asm/$test.s -o build/tests/$test.o
+    source_file=tests/asm/$test.s
+    if [[ "$test" == led ]]; then source_file=tests/system/led.s; fi
+    clang --target=riscv32 -march=rv32i -mno-relax -c "$source_file" -o build/tests/$test.o
     $OBJCOPY -O binary -j .text build/tests/$test.o build/tests/$test.bin
     $OBJDUMP -d -M no-aliases,numeric build/tests/$test.o > build/tests/$test.dump
     od -An -tx4 -v -w4 build/tests/$test.bin | tr -d ' ' > build/tests/$test.hex
+
+    if [[ "$test" == led ]]; then
+        verilator --binary --timing --trace -j 4 -Mdir build/tests/led_system -Irtl --top-module bench_led \
+            $RTL rtl/core_system.sv testbenches/bench_led.sv > build/tests/led_system.log 2>&1 || { cat build/tests/led_system.log; exit 1; }
+        ./build/tests/led_system/Vbench_led
+        continue
+    fi
 
     grep -E '^\s*# expect' tests/asm/$test.s | while read -r _ _ reg val; do
         printf '%d %08x\n' "${reg#x}" $(( val & 0xFFFFFFFF ))
     done > build/tests/$test.expect
 
     ./build/tests/obj/Vbench_program +test=$test
+    if [[ "$test" == jump ]]; then
+        verilator --binary --timing -j 4 -Mdir build/tests/system -Irtl --top-module bench_core_system \
+            $RTL rtl/core_system.sv testbenches/bench_core_system.sv > build/tests/system.log 2>&1 || { cat build/tests/system.log; exit 1; }
+        ./build/tests/system/Vbench_core_system
+    fi
 done

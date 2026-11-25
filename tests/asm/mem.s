@@ -18,6 +18,18 @@
     lb   x11, 17(x1)        # byte 1 of 0x12345678
     lhu  x12, 18(x1)        # upper half of 0x12345678
 
+    # Write one byte at a time and read the whole word to check its neighbors.
+    sw   x10, 20(x1)        # start with 0x12345678
+    addi x13, x0, 0xaa
+    sb   x13, 20(x1)
+    lw   x14, 20(x1)
+    sb   x13, 21(x1)
+    lw   x15, 20(x1)
+    sb   x13, 22(x1)
+    lw   x16, 20(x1)
+    sb   x13, 23(x1)
+    lw   x17, 20(x1)
+
 # expect x3 42
 # expect x4 42
 # expect x6 -1
@@ -27,3 +39,7 @@
 # expect x10 0x12345678
 # expect x11 0x56
 # expect x12 0x1234
+# expect x14 0x123456aa
+# expect x15 0x1234aaaa
+# expect x16 0x12aaaaaa
+# expect x17 0xaaaaaaaa

@@ -6,7 +6,12 @@ module core
 	input logic [XLEN-1:0] inst_i,
 	output logic [XLEN-1:0] pc_o,
 	output logic illegal_inst_o,
-	output logic instr_addr_misaligned_o
+	output logic instr_addr_misaligned_o,
+    output logic [XLEN-1:0] data_addr_o,
+    output logic [XLEN-1:0] store_data_o,
+    output logic store_valid_o,
+    input logic io_selected_i,
+    input logic [XLEN-1:0] io_rdata_i
 );
 
 	alu_op_e alu_op;
@@ -103,20 +108,24 @@ module core
 		.zero_o(alu_zero)
 	);
 
-	dmem dmem (
+    assign data_addr_o = alu_result;
+    assign store_data_o = rs2_data;
+    assign store_valid_o = mem_write && !illegal_inst_o;
+
+    dmem dmem (
 		.clk(clk),
 		.rst_n(rst_n),
 		.addr_i(alu_result),
 		.wdata_i(rs2_data),
-		.mem_read_i(mem_read),
-		.mem_write_i(mem_write),
+		.mem_read_i(mem_read && !io_selected_i),
+		.mem_write_i(store_valid_o && !io_selected_i),
 		.funct3_i(inst_i[14:12]),
 		.rdata_o(mem_rdata)
 	);
 
 	always_comb begin
 		if (wb_sel == WB_MEM) begin
-			rd_data = mem_rdata;
+			rd_data = io_selected_i ? io_rdata_i : mem_rdata;
 		end else if (wb_sel == WB_PC4) begin
 			rd_data = pc_o + 32'd4;
 		end else begin

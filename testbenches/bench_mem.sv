@@ -22,7 +22,9 @@ module bench_mem;
         .inst_i(inst_i),
         .pc_o(pc_o),
         .illegal_inst_o(illegal_inst_o),
-        .instr_addr_misaligned_o(instr_addr_misaligned_o)
+        .instr_addr_misaligned_o(instr_addr_misaligned_o),
+        .data_addr_o(), .store_data_o(), .store_valid_o(),
+        .io_selected_i(1'b0), .io_rdata_i(32'b0)
     );
 
     assign inst_i = imem[pc_o[9:2]];
